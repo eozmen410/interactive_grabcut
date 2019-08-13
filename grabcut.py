@@ -27,7 +27,7 @@ def grabcut_rect(image_path, rect_coords_list):
         # rect_coords = rect_coords_list[i]
         mask_val = int(rect_coords['gc_mask_value'])
         print('mask val ')
-        print mask_val
+        print(mask_val)
         x = int(rect_coords['left'])
         y = int(rect_coords['top'])
         h = int(rect_coords['height'])
@@ -61,6 +61,7 @@ def grabcut_rect(image_path, rect_coords_list):
     b, g, r = cv2.split(src)
     rgba = [b,g,r, alpha]
     dst = cv2.merge(rgba,4)
+    #can remove this call if we don't want to crop the image after grabcut
     resize_and_write(img_file_name, dst, rect_coords_list[0])
     
     #send the new file name back
