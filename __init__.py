@@ -5,7 +5,7 @@ from flask import jsonify
 import json
 from grabcut import *
 
-abs_path = '/home/ecenaz/research/demo_grabcut/'
+abs_path ='./' # '/home/ecenaz/research/demo_grabcut/'
 
 tmpl_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
 app = Flask(__name__, template_folder=tmpl_dir)
