@@ -301,7 +301,12 @@ function makeGrabCutRow(appending_container,imageURL, project_name) {
 
         let add_back_detail_button = $("<button class='btn btn-primary'>Add Back Detail</button>")
         $(col3).append(add_back_detail_button)
-        $(add_back_detail_button).click(function(){ 
+        $(add_back_detail_button).click(function(){
+            if(!obj.canvas1.ready){
+
+                alert("Please draw rectangle first")
+                return
+            } 
             console.log("add_back_detail_button")
             var rect_1 = get_active_rect_of_canvas(fg_fabric_canvas)
             rect_1.scale_factor = obj.canvas1.scale_factor

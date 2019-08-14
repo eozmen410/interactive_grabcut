@@ -145,8 +145,8 @@ def grabcut_drawing(image_path, rect_coords, drawing,project_name, row_id):
             if (path_seg_type == 'Q'):
                 # print('CIRCLE IN MASK')
                 
-                x1 = int(path_seg[2])
-                y1 = int(path_seg[1])
+                x1 = int(path_seg[1])
+                y1 = int(path_seg[2])
                 if (x1 > dimx or x1 < 0) or (y1> dimy or y1 < 0) :
                     continue
                 cv2.circle(mask, (x1,y1), int(thickness), 0, -1)
