@@ -4,7 +4,7 @@ from matplotlib import pyplot as plt
 import os
 
 
-def grabcut_rect(image_path, rect_coords_list):
+def grabcut_rect(image_path, rect_coords_list, project_name, row_id):
     print('IMAGE PATH: ' + image_path)
     print('in grab cut!')
     # print(rect_coords)
@@ -48,7 +48,9 @@ def grabcut_rect(image_path, rect_coords_list):
     mask2 = np.where((mask==2)|(mask==0),0,1).astype('uint8')
     img2 = img*mask2[:,:,np.newaxis]
 
-    img_file_name = new_file_name(image_path)
+    img_file_name = new_file_name(project_name, row_id)
+    print(" IMAGE FILE NAME!!!!!!!!!!")
+    print(img_file_name)
     cv2.imwrite(img_file_name, img2)
     del mask
     del bgdModel
@@ -65,7 +67,7 @@ def grabcut_rect(image_path, rect_coords_list):
     resize_and_write(img_file_name, dst, rect_coords_list[0])
     
     #send the new file name back
-    return img_file_name.split('/')[-1]
+    return img_file_name #img_file_name.split('/')[-1]
 
 def resize_and_write(img_path, img, rect_coords):
     print(rect_coords)
@@ -79,13 +81,18 @@ def resize_and_write(img_path, img, rect_coords):
     cv2.imwrite(img_path, crop_img)
 
 #give a unique name to each saved file imgID_grabcut_0,1,2,...
-def new_file_name(image_path):
-    index = image_path.rfind('.')
-    new_name = image_path[0 : index] + '_grabcut'
+#def new_file_name(image_path):
+def new_file_name(project_name, row_id):
+    #index = image_path.rfind('.')
+
+    file_path = "./static/images/"+project_name+"/"+str(row_id)+"/"
+    if(not os.path.isdir(file_path)):
+        os.mkdir(file_path)
+    new_name = file_path + 'grabcut'
     i = 0
     while os.path.isfile(new_name + str(i) + '.png' ):
         i += 1
-    return new_name + str(i) + '.png'
+    return  new_name+ str(i) + '.png'
 
 def cat_masks(mask, newmask) :
     newnewmask =  np.zeros((dimy,dimx),np.uint8)
@@ -97,60 +104,3 @@ def cat_masks(mask, newmask) :
                 # count +=1
     # print('count: ' + str(count))
     return newnewmask
-
-# attempt to use 2 masks 
-# def grabcut_rect(image_path, rect_coords_list):
-#     print('in grab cut!')
-#     # print(rect_coords)
-#     img = cv2.imread(image_path, cv2.IMREAD_UNCHANGED)
-#     # cv2.imshow('initial', img)
-#     # cv2.waitKey(0)
-#     dimy = np.shape(img)[0]
-#     dimx = np.shape(img)[1]
-#     print("dimy")
-#     print(dimy)
-#     print("dimx")
-#     print(dimx)
-#     mask = np.zeros((dimy,dimx),np.uint8) #initialize empty mask
-#     bgdModel = fgdModel = np.zeros((1,65),np.float64)
-
-#     print('in grabcut rect_coords_list')
-#     print(rect_coords_list)
-    
-#     #first pass rect coords 1
-#     first_pass = rect_coords_list[0]
-#     x = int(first_pass['left'])
-#     y = int(first_pass['top'])
-#     h = int(first_pass['height'])
-#     w = int(first_pass['width'])
-#     rect1 = (x,y,w,h)
-#     print(rect1)
-#     # print('out of looping mask') 
-#     print('entering grabcut')
-#     mask, bgdModel, fgdModel = cv2.grabCut(img,mask,rect1,bgdModel,fgdModel,5,cv2.GC_INIT_WITH_RECT)
-    
-#     second_pass =rect_coords_list[1]
-#     x2 = int(second_pass['left'])
-#     y2 = int(second_pass['top'])
-#     h2 = int(second_pass['height'])
-#     w2 = int(second_pass['width'])
-
-#     for iy in range(y2, y2+h2):
-#         for ix in range(x2, x2+w2):
-#             mask[iy][ix]= cv2.GC_BGD
-
-
-#     mask, bgdModel, fgdModel = cv2.grabCut(img,mask,None,bgdModel,fgdModel,5,cv2.GC_INIT_WITH_MASK)
-#     mask2 = np.where((mask==2)|(mask==0),0,1).astype('uint8')
-#     img2 = img*mask2[:,:,np.newaxis]
-#     cv2.imshow('grabcut2',img2)
-#     cv2.waitKey(0)
-#     img_file_name = new_file_name(image_path)
-
-#     # cv2.imshow('grabcut2',img2)
-#     # cv2.waitKey(0)
-#     cv2.imwrite(img_file_name, img2)
-#     del mask
-#     del bgdModel
-#     del fgdModel
-#     return img_file_name.split('/')[-1]

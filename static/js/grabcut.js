@@ -54,16 +54,6 @@ function makeProbableForegroundFabricCanvas(myCanvasObj, appendToCol){
         });
 
 
-    // make it draw
-    // http://jsfiddle.net/psbolden/qhfvpj4z/3/
-    // http://fabricjs.com/freedrawing
-
-
-    // canvas.isDrawingMode = true
-    // canvas.freeDrawingBrush.color = "green";
-    // canvas.freeDrawingBrush.width = 10;
-
-
 
     //MAKE RECT DRAWING
     // http://jsfiddle.net/a7mad24/aPLq5/
@@ -156,14 +146,15 @@ function makeBackgroundDrawingFabricCanvas(myCanvasObj, appendToCol) {
 
 }
 
-function makeGrabCutRow(div_id,imageURL) {
-    console.log(imageURL)
+function makeGrabCutRow(appending_container,imageURL, project_name) {
+    //console.log(imageURL)
     let id = getIdNumber()
 
 
     let obj = {
         id: id,
-        row_type: "grab_cut",
+        row_type: "grabcut",
+        project_name: project_name,
         image: {
             imageURL: imageURL,// this is how I do undefined - so it converts to python ok, if I need that.
             scale_factor: 1, //default of no scaling factor
@@ -183,7 +174,8 @@ function makeGrabCutRow(div_id,imageURL) {
     let col3 = $("<div class='col-md-4'>")
 
     $(new_row).append(col1).append(col2).append(col3) // GOT RID OF THIS        
-    $("#"+div_id).append(new_row)
+    $("#"+appending_container).append(id)
+    $("#"+appending_container).append(new_row)
 
 
     //CREATE ROW 1 (Fabric cancas for drawing)
@@ -200,19 +192,7 @@ function makeGrabCutRow(div_id,imageURL) {
         original_image: "",
 
     }
-    // let canvas2_id = getGrabcutCanvasId(id, "2")
-    // obj.canvas2 = {
-    //     type: "fabric_canvas",            
-    //     id: canvas2_id,
-    //     // height : canvas_height,
-    //     // width: canvas_width,
-    //     imageURL: imageURL,
-    //     scale_factor: 1, //default of no scaling factor
-    //     img_height: "",
-    //     img_width: "",
-    //     original_image: "",
 
-    // }
 
     var fg_fabric_canvas = makeProbableForegroundFabricCanvas(obj.canvas1, col1 /*append to col1 */)
 
@@ -249,7 +229,8 @@ function makeGrabCutRow(div_id,imageURL) {
         // var rect_list = [rect_1, rect_2]
         var rect_list = [rect_1]
 
-        do_grabcut_backend(imageURL.replace("../static/images/", ""),  rect_list , col3, div_id)
+        let row_id = id        
+        do_grabcut_backend(imageURL.replace("../static/images/", ""),  rect_list , col2, appending_container, obj)
 
     })
 
@@ -280,13 +261,19 @@ function get_active_rect_of_canvas(fabric_canvas) {
 
     
     } else {
-        console.log("no FABric rect")
+        console.log("no Fabric rect")
     }
     return {}
 }
 
 
-function do_grabcut_backend(img_file, rect_coords,  where, div_id) {
+// 
+// rect_cord are the coordinates of the rectangl
+// where is the id of the div to append the returned image to.
+//div_id
+function do_grabcut_backend(img_file, rect_coords,  where, div_id, obj){ //} project_name, row_id) {
+    console.log("div_id", div_id)
+    console.log("row_id", obj)
     $(where).empty()
     var loading_img = $("<div id='loading_" +div_id +"'>")
 		$(loading_img).append("<img src='../static/ajax-loader.gif'>")
@@ -294,6 +281,8 @@ function do_grabcut_backend(img_file, rect_coords,  where, div_id) {
 		$(where).append(loading_img)
     var send = {
         'img_file' : img_file,
+        'project_name': obj.project_name,
+        'row_id': obj.id,
         'rect_coords' : rect_coords,
     }
     console.log(send)
@@ -305,7 +294,10 @@ function do_grabcut_backend(img_file, rect_coords,  where, div_id) {
         dataType: 'json',
         success: function (result) {
             console.log(result)
-            file_name = result['saved_file']
+            file_name = result['saved_file'] 
+            //object object.
+            obj.canvas2.imageURL = file_name
+
             append_grabcut_result(file_name, where, div_id)
         },
         error: function (request, status, error) {
@@ -320,7 +312,7 @@ function do_grabcut_backend(img_file, rect_coords,  where, div_id) {
 function append_grabcut_result(file_name, where, div_id) {
     $("#loading_" + div_id).remove()
     var gc_img = $("<img>")
-    $(gc_img).attr('src', '../static/images/' + file_name)
+    $(gc_img).attr('src', file_name)
     $(gc_img).addClass('grabcut_res')
     $(where).empty()
     $(where).append(gc_img)
