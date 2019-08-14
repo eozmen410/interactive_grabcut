@@ -146,6 +146,49 @@ function makeBackgroundDrawingFabricCanvas(myCanvasObj, appendToCol) {
 
 }
 
+function makeBackgroundDrawingFabricCanvas(myCanvasObj, appendToCol) {
+    let canvas_id = myCanvasObj.id
+    let canvas_html = $("<canvas>")        
+    $(canvas_html).attr("id", canvas_id)
+    $(canvas_html).attr("height", canvas_height)
+    $(canvas_html).attr("width", canvas_width)
+    $(appendToCol).append(canvas_html) 
+    
+    var canvas = new fabric.Canvas(canvas_id);
+
+
+    canvas.isDrawingMode = true
+    canvas.freeDrawingBrush.color = "green";
+    canvas.freeDrawingBrush.width = 1;
+
+
+    //set Background Images for the Fabric Canvases     
+    fabric.Image.fromURL(myCanvasObj.imageURL, function(img) {
+        let original_height = img._originalElement.height
+        let original_width = img._originalElement.width
+
+        let scale_determine = original_height > original_width ? original_height : original_width
+        let scale_factor = 300/scale_determine    //original_width
+
+        myCanvasObj.scale_factor = scale_factor
+
+        //obj.image.img = fabric.util.object.clone(img)
+        myCanvasObj.img_height = original_height * scale_factor
+        myCanvasObj.img_width = original_width * scale_factor
+
+        canvas.setBackgroundImage(img, canvas.renderAll.bind(canvas), { 
+           scaleX: scale_factor,
+           scaleY: scale_factor,
+           
+        });
+
+     });
+
+
+
+    return canvas
+}
+
 function makeGrabCutRow(appending_container,imageURL, project_name) {
     //console.log(imageURL)
     let id = getIdNumber()
@@ -169,11 +212,12 @@ function makeGrabCutRow(appending_container,imageURL, project_name) {
         }
     // CREATE FRAMRWORK FOR ALL CANVASES 
     let new_row = $("<div class='row'>")
-    let col1 = $("<div class='col-md-4'>")
-    let col2 = $("<div class='col-md-4'>")
-    let col3 = $("<div class='col-md-4'>")
+    let col1 = $("<div class='col-md-3'>")
+    let col2 = $("<div class='col-md-3'>")
+    let col3 = $("<div class='col-md-3'>")
+    let col4 =$("<div class='col-md-3'>")
 
-    $(new_row).append(col1).append(col2).append(col3) // GOT RID OF THIS        
+    $(new_row).append(col1).append(col2).append(col3).append(col4) // GOT RID OF THIS        
     $("#"+appending_container).append(id)
     $("#"+appending_container).append(new_row)
 
@@ -198,13 +242,7 @@ function makeGrabCutRow(appending_container,imageURL, project_name) {
 
     // var fg_fabric_canvas_2 = makeProbableForegroundFabricCanvas(obj.canvas2, col2 /*append to col1 */)
 
-    let canvas2_id = getGrabcutCanvasId(id, "2")
-
-    obj.canvas2 = {
-        type: "fabric_canvas",            
-        id: canvas2_id,
-    }
-    // makeBackgroundDrawingFabricCanvas(obj.canvas2, col3)
+ 
 
     let do_grabcut_button = $("<button class='btn btn-primary'><span class= 'glyphicon glyphicon-scissors'></span></button>")
     $(col1).append(do_grabcut_button)
@@ -212,6 +250,7 @@ function makeGrabCutRow(appending_container,imageURL, project_name) {
         if(!obj.canvas1.ready){
 
             alert("Please draw rectangle")
+            return
         }
 
 
@@ -234,10 +273,94 @@ function makeGrabCutRow(appending_container,imageURL, project_name) {
 
     })
 
+    let canvas2_id = getGrabcutCanvasId(id, "2")
+
+    obj.canvas2 = {
+        type: "fabric_canvas",            
+        id: canvas2_id,
+        imageURL: imageURL,
+        scale_factor: 1, //default of no scaling factor
+        img_height: "",
+        img_width: "",
+        original_image: "",
+    }
+
+    obj.refinement_canvas = {
+        type: "fabric_canvas",            
+        id: canvas2_id,
+        imageURL: imageURL,
+        scale_factor: 1, //default of no scaling factor
+        img_height: "",
+        img_width: "",
+        original_image: "",
+    }
+
+    // makeBackgroundDrawingFabricCanvas(obj.canvas2, col3)
+
+    let bg_drawing_canvas = makeBackgroundDrawingFabricCanvas(obj.refinement_canvas, col3)
+
+        let add_back_detail_button = $("<button class='btn btn-primary'>Add Back Detail</button>")
+        $(col3).append(add_back_detail_button)
+        $(add_back_detail_button).click(function(){ 
+            console.log("add_back_detail_button")
+            var rect_1 = get_active_rect_of_canvas(fg_fabric_canvas)
+            rect_1.scale_factor = obj.canvas1.scale_factor
+            rect_1.gc_mask_value = cv.GC_PR_FGD
+            console.log('RECT !!!')
+            console.log(rect_1)
+            refine_grabcut(imageURL.replace("../static/images/", ""),bg_drawing_canvas, obj, rect_1, col4, appending_container)
+            // grabCutRefinement_Add(canvas_3_add, obj, canvas4_id, obj.image.original_image)
+        })
+
 
 
 
     return obj
+}
+
+function refine_grabcut(img_file, drawing_canvas, obj, rect_coords, where, div_id) {
+    $(where).empty()
+    var loading_img = $("<div id='loading_2_" +div_id +"'>")
+    $(loading_img).append("<img src='../static/ajax-loader.gif'>")
+    $(loading_img).addClass('loading_gif')
+    $(where).append(loading_img)
+    //get objects from drawing canvas, send paths to backend
+    let lines = drawing_canvas.getObjects()
+    console.log('LINES: !!!!!!!!!!!!!!!!!!!!!!11')
+    console.log(lines)
+    var drawing = {
+        'lines' : lines,
+        'scale_factor' : obj.refinement_canvas.scale_factor,
+        'thickness' : 1
+    }
+    var send = {
+        'drawing' : drawing,
+        'img_file' : img_file,
+        'rect_coords' : rect_coords,
+        'project_name': obj.project_name,
+        'row_id': obj.id,
+    }
+    $.ajax({
+        url: '../refine_grabcut',
+        type: 'POST',
+        data: JSON.stringify(send),
+        contentType: 'application/json; charset=UTF-8',
+        dataType: 'json',
+        success: function (result) {
+            console.log(result)
+            file_name = result['saved_file']
+            $("#loading_2_" + div_id).remove()
+            append_grabcut_result(file_name, where, div_id, /*rect_coords //for when we want to crop the image after being selected*/)
+            obj.refinement_output.imageURL = file_name
+        },
+        error: function (request, status, error) {
+          console.log("Error");
+          console.log(request)
+          console.log(status)
+          console.log(error)
+        }
+    });
+    //append result to where
 }
 
 function get_active_rect_of_canvas(fabric_canvas) {

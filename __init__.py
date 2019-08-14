@@ -35,6 +35,31 @@ def do_grabcut():
   print(new_file)
   return jsonify(saved_file = new_file)
 
+@app.route('/refine_grabcut', methods=['POST'])
+def refine_grabcut():
+  data = request.get_json()
+  drawing = data['drawing']
+  img_file = data['img_file']
+  rect_coords = data['rect_coords']
+  project_name = data['project_name']
+  row_id = data['row_id']
+  rect_coords_scaled = cal_rect_coords(rect_coords)
+  scale_drawing(drawing)
+  new_file = grabcut_drawing(abs_path + 'static/images/'+img_file, rect_coords_scaled, drawing,project_name,row_id)
+  print(new_file)
+  return jsonify(saved_file = new_file)
+
+def scale_drawing(drawing):
+  scale_factor = drawing['scale_factor']
+  drawing['thickness'] = drawing['thickness'] / scale_factor
+  for line in drawing['lines']:
+    path = line['path']
+    for path_seg in path:
+      path_seg_type = path_seg[0]
+      if (path_seg_type == 'Q'):
+          path_seg[2] = path_seg[2] / scale_factor
+          path_seg[1] = path_seg[1] / scale_factor
+
 
 def cal_rect_coords(rect_coords):
   factor = rect_coords['scale_factor']

@@ -51,7 +51,7 @@ def grabcut_rect(image_path, rect_coords_list, project_name, row_id):
     img_file_name = new_file_name(project_name, row_id)
     print(" IMAGE FILE NAME!!!!!!!!!!")
     print(img_file_name)
-    cv2.imwrite(img_file_name, img2)
+    
     del mask
     del bgdModel
     del fgdModel
@@ -63,8 +63,9 @@ def grabcut_rect(image_path, rect_coords_list, project_name, row_id):
     b, g, r = cv2.split(src)
     rgba = [b,g,r, alpha]
     dst = cv2.merge(rgba,4)
+    cv2.imwrite(img_file_name, dst)
     #can remove this call if we don't want to crop the image after grabcut
-    resize_and_write(img_file_name, dst, rect_coords_list[0])
+    # resize_and_write(img_file_name, dst, rect_coords_list[0])
     
     #send the new file name back
     return img_file_name #img_file_name.split('/')[-1]
@@ -104,3 +105,68 @@ def cat_masks(mask, newmask) :
                 # count +=1
     # print('count: ' + str(count))
     return newnewmask
+
+
+def grabcut_drawing(image_path, rect_coords, drawing,project_name, row_id):
+    print('in refine grab cut!')
+    img = cv2.imread(image_path, cv2.IMREAD_UNCHANGED)
+    dimy = np.shape(img)[0]
+    dimx = np.shape(img)[1]
+    print("dimy")
+    print(dimy)
+    print("dimx")
+    print(dimx)
+
+    mask = np.zeros((dimy,dimx),np.uint8) #initialize empty mask
+    bgdModel = fgdModel = np.zeros((1,65),np.float64)
+
+    print('in grabcut rect_coords_list')
+    #mask_val = int(rect_coords['gc_mask_value'])
+
+    x = int(rect_coords['left'])
+    y = int(rect_coords['top'])
+    h = int(rect_coords['height'])
+    w = int(rect_coords['width'])
+    rect = (x, y, w, h) #make foreground with rect_coords
+    cv2.grabCut(img, mask, rect, bgdModel, fgdModel, 1, cv2.GC_INIT_WITH_RECT)
+    bgdModel = np.zeros((1, 65), np.float64)
+    fgdModel = np.zeros((1, 65), np.float64)
+
+    thickness = drawing['thickness']
+    # print('THICKNESS')
+    # print(thickness)
+    # print(drawing)
+    lines = drawing['lines']
+    for line in lines:
+        print ('line!!!!!!!')
+        path = line['path']
+        for path_seg in path:
+            path_seg_type = path_seg[0]
+            if (path_seg_type == 'Q'):
+                # print('CIRCLE IN MASK')
+                
+                x1 = int(path_seg[2])
+                y1 = int(path_seg[1])
+                if (x1 > dimx or x1 < 0) or (y1> dimy or y1 < 0) :
+                    continue
+                cv2.circle(mask, (x1,y1), int(thickness), 0, -1)
+
+
+    mask, bgdModel, fgdModel = cv2.grabCut(img,mask,rect,bgdModel,fgdModel,5,cv2.GC_INIT_WITH_MASK)
+    mask2 = np.where((mask==2)|(mask==0),0,1).astype('uint8')
+    img2 = img*mask2[:,:,np.newaxis]
+
+    img_file_name = new_file_name(project_name, row_id)
+    
+    #to save the image without black background
+    src = img2
+    tmp = cv2.cvtColor(src, cv2.COLOR_BGR2GRAY)
+    _,alpha = cv2.threshold(tmp,0,255,cv2.THRESH_BINARY)
+    b, g, r = cv2.split(src)
+    rgba = [b,g,r, alpha]
+    dst = cv2.merge(rgba,4)
+    cv2.imwrite(img_file_name, dst)
+    # resize_and_write(img_file_name, dst, rect_coords_list[0])
+    
+    #send the new file name back
+    return img_file_name#img_file_name.split('/')[-1]
