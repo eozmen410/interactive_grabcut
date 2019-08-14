@@ -312,6 +312,13 @@ function makeGrabCutRow(appending_container,imageURL, project_name) {
             // grabCutRefinement_Add(canvas_3_add, obj, canvas4_id, obj.image.original_image)
         })
 
+        let clear_canvas_button = $("<button class='btn btn-primary'>Clear Canvas</button>")
+        $(col3).append(clear_canvas_button)
+        $(clear_canvas_button).click(function(){ 
+            console.log("clearing canvas")
+           clear_canvas(bg_drawing_canvas)
+        })
+
 
 
 
@@ -439,4 +446,11 @@ function append_grabcut_result(file_name, where, div_id) {
     $(gc_img).addClass('grabcut_res')
     $(where).empty()
     $(where).append(gc_img)
+}
+
+function clear_canvas(canvas) {
+    var objects = canvas.getObjects()
+    for(var i=0; i<objects.length; i++){
+        canvas.remove(objects[i])
+    }
 }
