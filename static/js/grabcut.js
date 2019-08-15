@@ -313,7 +313,6 @@ function makeGrabCutRow(appending_container,imageURL, project_name) {
         })
 
         let clear_canvas_button = $("<button class='btn btn-primary'>Clear Drawing</button>")
-        //$(col3).append("<span>&nbsp&nbsp&nbsp&nbsp</span>")
         $(col3).append("<span>&nbsp&nbsp&nbsp&nbsp</span>").append(clear_canvas_button)
         $(clear_canvas_button).click(function(){ 
            clear_canvas(bg_drawing_canvas)
