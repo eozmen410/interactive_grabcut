@@ -12,7 +12,9 @@ $(document).ready(function(){
     let obj2_id = obj2.id
     all_rows[obj2_id] = obj2
 
-    console.log(all_rows)
+    project_name_2 = "burger"
+    let obj3 = makeGrabCutRow(appending_container, "../static/images/burger/_original/burger.jpg", project_name_2)
+    let obj3_id = obj3.id
+    all_rows[obj3_id] = obj3
 
-    add_blend_button()
 })

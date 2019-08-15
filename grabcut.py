@@ -4,71 +4,36 @@ from matplotlib import pyplot as plt
 import os
 
 
-def grabcut_rect(image_path, rect_coords_list, project_name, row_id):
-    print('IMAGE PATH: ' + image_path)
-    print('in grab cut!')
-    # print(rect_coords)
+def grabcut_rect(image_path, rect_coords, project_name, row_id):
     img = cv2.imread(image_path, cv2.IMREAD_UNCHANGED)
-    # cv2.imshow('initial', img)
-    # cv2.waitKey(0)
     dimy = np.shape(img)[0]
     dimx = np.shape(img)[1]
-    print("dimy")
-    print(dimy)
-    print("dimx")
-    print(dimx)
     mask = np.zeros((dimy,dimx),np.uint8) #initialize empty mask
     bgdModel = fgdModel = np.zeros((1,65),np.float64)
 
-    print('in grabcut rect_coords_list')
-    print(rect_coords_list)
-    #make probable foreground with rect_coords
-    for rect_coords in rect_coords_list:
-        # rect_coords = rect_coords_list[i]
-        mask_val = int(rect_coords['gc_mask_value'])
-        print('mask val ')
-        print(mask_val)
-        x = int(rect_coords['left'])
-        y = int(rect_coords['top'])
-        h = int(rect_coords['height'])
-        w = int(rect_coords['width'])
+    x = int(rect_coords['left'])
+    y = int(rect_coords['top'])
+    h = int(rect_coords['height'])
+    w = int(rect_coords['width'])
+    rect = (x, y, w, h)
 
-        for iy in range(y, y+h):
-            if iy >= dimy:
-                break
-            for ix in range(x, x+w):
-                if ix >= dimx:
-                    break
-                mask[iy][ix] = mask_val 
-    
-
-    print('out of looping mask') 
-    print('entering grabcut')
-    mask, bgdModel, fgdModel = cv2.grabCut(img,mask,None,bgdModel,fgdModel,5,cv2.GC_INIT_WITH_MASK)
-    mask2 = np.where((mask==2)|(mask==0),0,1).astype('uint8')
-    img2 = img*mask2[:,:,np.newaxis]
+    mask, bgdModel, fgdModel = cv2.grabCut(img,mask,rect,bgdModel,fgdModel,5,cv2.GC_INIT_WITH_RECT)
 
     img_file_name = new_file_name(project_name, row_id)
-    print(" IMAGE FILE NAME!!!!!!!!!!")
-    print(img_file_name)
-    
-    del mask
-    del bgdModel
-    del fgdModel
+
+    mask2 = np.where((mask==2)|(mask==0),0,1).astype('uint8')
+    img2 = img*mask2[:,:,np.newaxis]
     
     #to save the image without black background
-    src = img2
-    tmp = cv2.cvtColor(src, cv2.COLOR_BGR2GRAY)
+    tmp = cv2.cvtColor(img2, cv2.COLOR_BGR2GRAY)
     _,alpha = cv2.threshold(tmp,0,255,cv2.THRESH_BINARY)
-    b, g, r = cv2.split(src)
+    b, g, r = cv2.split(img2)
     rgba = [b,g,r, alpha]
-    dst = cv2.merge(rgba,4)
-    cv2.imwrite(img_file_name, dst)
-    #can remove this call if we don't want to crop the image after grabcut
-    # resize_and_write(img_file_name, dst, rect_coords_list[0])
-    
+    img2_refined = cv2.merge(rgba,4)
+    cv2.imwrite(img_file_name, img2_refined)
+
     #send the new file name back
-    return img_file_name #img_file_name.split('/')[-1]
+    return img_file_name 
 
 def resize_and_write(img_path, img, rect_coords):
     print(rect_coords)
@@ -81,7 +46,7 @@ def resize_and_write(img_path, img, rect_coords):
     crop_img = img[y:y+h, x:x+w]
     cv2.imwrite(img_path, crop_img)
 
-#give a unique name to each saved file imgID_grabcut_0,1,2,...
+#give a unique name to each saved file grabcut_0,1,2,...
 #def new_file_name(image_path):
 def new_file_name(project_name, row_id):
     #index = image_path.rfind('.')
@@ -95,50 +60,31 @@ def new_file_name(project_name, row_id):
         i += 1
     return  new_name+ str(i) + '.png'
 
-def cat_masks(mask, newmask) :
-    newnewmask =  np.zeros((dimy,dimx),np.uint8)
-    # count = 0
-    for x in range(0, dimx):
-        for y in range(0, dimy):
-            if mask[y][x] == 3  or newmask[y][x] == 3:
-                newnewmask[y][x] = cv2.GC_PR_FGD
-                # count +=1
-    # print('count: ' + str(count))
-    return newnewmask
-
 
 def grabcut_drawing(image_path, rect_coords, drawing,project_name, row_id):
     print('in refine grab cut!')
     img = cv2.imread(image_path, cv2.IMREAD_UNCHANGED)
     dimy = np.shape(img)[0]
     dimx = np.shape(img)[1]
-    print("dimy")
-    print(dimy)
-    print("dimx")
-    print(dimx)
 
     mask = np.zeros((dimy,dimx),np.uint8) #initialize empty mask
     bgdModel = fgdModel = np.zeros((1,65),np.float64)
-
-    print('in grabcut rect_coords_list')
-    #mask_val = int(rect_coords['gc_mask_value'])
 
     x = int(rect_coords['left'])
     y = int(rect_coords['top'])
     h = int(rect_coords['height'])
     w = int(rect_coords['width'])
-    rect = (x, y, w, h) #make foreground with rect_coords
-    cv2.grabCut(img, mask, rect, bgdModel, fgdModel, 1, cv2.GC_INIT_WITH_RECT)
-    bgdModel = np.zeros((1, 65), np.float64)
+    rect = (x, y, w, h) #make rect to initialize with rect
+    cv2.grabCut(img, mask, rect, bgdModel, fgdModel, 5, cv2.GC_INIT_WITH_RECT)
+    bgdModel = np.zeros((1, 65), np.float64) #zero out foreground and background models
     fgdModel = np.zeros((1, 65), np.float64)
 
-    thickness = drawing['thickness']
-    # print('THICKNESS')
-    # print(thickness)
-    # print(drawing)
+    # make the drawing on the mask, 
+    # for each line in the drawing,
+    #  for each point in the line, make a circle with the scaled thickness on the mask    
     lines = drawing['lines']
+    thickness = drawing['thickness']
     for line in lines:
-        print ('line!!!!!!!')
         path = line['path']
         for path_seg in path:
             path_seg_type = path_seg[0]
@@ -159,14 +105,12 @@ def grabcut_drawing(image_path, rect_coords, drawing,project_name, row_id):
     img_file_name = new_file_name(project_name, row_id)
     
     #to save the image without black background
-    src = img2
-    tmp = cv2.cvtColor(src, cv2.COLOR_BGR2GRAY)
+    tmp = cv2.cvtColor(img2, cv2.COLOR_BGR2GRAY)
     _,alpha = cv2.threshold(tmp,0,255,cv2.THRESH_BINARY)
-    b, g, r = cv2.split(src)
+    b, g, r = cv2.split(img2)
     rgba = [b,g,r, alpha]
-    dst = cv2.merge(rgba,4)
-    cv2.imwrite(img_file_name, dst)
-    # resize_and_write(img_file_name, dst, rect_coords_list[0])
+    img2_refined = cv2.merge(rgba,4)
+    cv2.imwrite(img_file_name, img2_refined)
     
     #send the new file name back
-    return img_file_name#img_file_name.split('/')[-1]
+    return img_file_name

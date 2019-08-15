@@ -2,38 +2,47 @@
 
 <html>
    <head>
-        <title> Grabcut Demo</title>
-        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
-        <link href='https://fonts.googleapis.com/css?family=Roboto' rel='stylesheet'>
-        
-        <!-- <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous"> -->
-        <script src="http://code.jquery.com/jquery-3.3.1.min.js"></script>
-      <script type=text/javascript src="{{ url_for('static', filename='js/lib/fabric.js') }}"></script> 
-      <script src="{{ url_for('static', filename='js/lib/opencv.js') }}"></script>
-      <script src="{{ url_for('static', filename='js/grabcut.js') }}"></script>
-      
-    <script type=text/javascript src="{{ url_for('static', filename='js/grabcut_demo.js') }}"></script> 
-    <style type='text/css'>
-    .grabcut_res {
-            max-height: 300px;
-            max-width:300px;
-            background-color: grey;
-    }
-    </style>
+      <title> Grabcut Demo</title>
+      <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+      <script src="http://code.jquery.com/jquery-3.3.1.min.js"></script>
+      <script type="text/javascript" src="{{ url_for('static', filename='js/lib/fabric.js') }}"></script> 
+      <script type="text/javascript" src="{{ url_for('static', filename='js/lib/opencv.js') }}"></script>
+      <script type="text/javascript" src="{{ url_for('static', filename='js/grabcut.js') }}"></script>  
+      <script type="text/javascript" src="{{ url_for('static', filename='js/grabcut_demo.js') }}"></script> 
+      <style type="text/css">
+        .grabcut_res {
+          max-height: 300px;
+          max-width:300px;
+          background-color: grey;
+        }
+        .grabcut_row {
+          border: 1px solid grey;
+          border-radius: 15px;
+          padding-top: 20px;
+          padding-bottom: 20px;
+          margin: 15px;
+        }
+        .title {
+          padding: 15px;
+          font-weight: bold;
+        }
+        .header {
+          background-color: #C5DDFD;
+        }
+        .h_text {
+          font-weight: bold;
+          font-size: 30px;
+        }
+      </style>
     </head>
 
     <body> 
-      <div class="container">
-        <div id="appending_container">
-        </div>
-        
-        <div id="add_functions">
-            <input id="blend_row_1"><input id="blend_row_2"><button id="add_blend_button">Add blend</button><br>
-        </div>
+      <div class="container-fluid">
+          <nav class="navbar navbar-light bg-light header">
+              <span class="navbar-brand mb-0 h_text">Interactive Grabcut</span>
+            </nav>
+        <div id="appending_container"></div>
     </div>
     </body>
-
-    <script src="{{ url_for('static', filename='js/blend.js') }}"></script> 
-        <script type=text/javascript src="{{ url_for('static', filename='js/blend.js') }}"></script> 
 
 </html>

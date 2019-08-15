@@ -4,7 +4,7 @@ canvas_width = 300
 function getIdNumber(){
     let x = Math.floor((Math.random() * 10000) );
     if(x<1000){
-        x=x+1000 // VERY JANKY way to make sure the id is exsctly 4 characters.
+        x=x+1000 
     }
     return x
 }
@@ -41,7 +41,6 @@ function makeProbableForegroundFabricCanvas(myCanvasObj, appendToCol){
 
         //set the global scale_factor variable
         myCanvasObj.scale_factor = scale_factor
-        console.log(myCanvasObj.scale_factor)
         myCanvasObj.img = img
         myCanvasObj.img_height = original_height * scale_factor
         myCanvasObj.img_width = original_width * scale_factor
@@ -63,7 +62,6 @@ function makeProbableForegroundFabricCanvas(myCanvasObj, appendToCol){
 
     canvas.on('mouse:down', function(o){
         if(hasRect){
-            console.log("has rect")
             return; // do nothing if there is already a rect
         } 
 
@@ -140,7 +138,6 @@ function makeBackgroundDrawingFabricCanvas(myCanvasObj, appendToCol) {
     let add_back_detail_button = $("<button class='btn btn-primary'>Add Back Detail</button>")
     $(appendToCol).append(add_back_detail_button)
     $(add_back_detail_button).click(function(){ 
-        console.log("add_back_detail_button")
         grabCutRefinement_Add(canvas_3_add, obj, canvas4_id, obj.image.original_image)
     })
 
@@ -190,7 +187,7 @@ function makeBackgroundDrawingFabricCanvas(myCanvasObj, appendToCol) {
 }
 
 function makeGrabCutRow(appending_container,imageURL, project_name) {
-    //console.log(imageURL)
+
     let id = getIdNumber()
 
 
@@ -206,29 +203,43 @@ function makeGrabCutRow(appending_container,imageURL, project_name) {
             original_image: "",
         },
         canvas1: {}, //fabric canvas
-        canvas2: {}, //reg canvas (opencv)
-        //canvas3: {},
+        canvas2: {}, //result of first canvas
+        refinement_canvas: {},
+        refinement_output: {} //to store the output file name after grabcut
 
         }
+
     // CREATE FRAMRWORK FOR ALL CANVASES 
-    let new_row = $("<div class='row'>")
+    let new_row = $("<div class='row grabcut_row'>")
     let col1 = $("<div class='col-md-3'>")
     let col2 = $("<div class='col-md-3'>")
     let col3 = $("<div class='col-md-3'>")
     let col4 =$("<div class='col-md-3'>")
 
-    $(new_row).append(col1).append(col2).append(col3).append(col4) // GOT RID OF THIS        
-    $("#"+appending_container).append(id)
+    $(new_row).append(col1).append(col2).append(col3).append(col4)     
+    $("#"+appending_container).append("Row id: "  +id + " Grabcut outputs for this row can be found in the directory demo_grabcut/static/images/~project_name~/" + id )
     $("#"+appending_container).append(new_row)
 
+
+    let title_container = $("<div class='col-md-12'>")
+    let title_row = $("<div class='row'>")
+    let title1 = $("<div class='col-md-3'>")
+    let title2 = $("<div class='col-md-3'>")
+    let title3 = $("<div class='col-md-3'>")
+    let title4 =$("<div class='col-md-3'>")
+    $(title1).append("<div class='title'>Draw Rectangle for grabcut (init_w_rect) <br> Make sure to get all the foreground in the rectangle</div>")
+    $(title2).append("<div class='title'>Result of grabcut with rectangle:</div>")
+    $(title3).append("<div class='title'>Remove background from image by drawing on the paces that are background</div>")
+    $(title4).append("<div class='title'>Result of refinement: </div>")
+    $(title_row).append(title1).append(title2).append(title3).append(title4)
+    $(title_container).append(title_row)
+    $(new_row).prepend(title_container)
 
     //CREATE ROW 1 (Fabric cancas for drawing)
     let canvas1_id = getGrabcutCanvasId(id, "1")
     obj.canvas1 = {
         type: "fabric_canvas",            
         id: canvas1_id,
-        // height : canvas_height,
-        // width: canvas_width,
         imageURL: imageURL,
         scale_factor: 1, //default of no scaling factor
         img_height: "",
@@ -238,38 +249,24 @@ function makeGrabCutRow(appending_container,imageURL, project_name) {
     }
 
 
+    $
+
+
     var fg_fabric_canvas = makeProbableForegroundFabricCanvas(obj.canvas1, col1 /*append to col1 */)
 
-    // var fg_fabric_canvas_2 = makeProbableForegroundFabricCanvas(obj.canvas2, col2 /*append to col1 */)
-
- 
-
-    let do_grabcut_button = $("<button class='btn btn-primary'><span class= 'glyphicon glyphicon-scissors'></span></button>")
+    let do_grabcut_button = $("<button class='btn btn-primary'>Run grabcut &nbsp <span class= 'glyphicon glyphicon-scissors'></span></button>")
     $(col1).append(do_grabcut_button)
     $(do_grabcut_button).click(function(){ 
         if(!obj.canvas1.ready){
-
-            alert("Please draw rectangle")
+            alert("Please draw a rectangle")
             return
         }
 
-
-        console.log("grabCut!!!!!!!!!!!!!!!!!!!!!!")
-
         var rect_1 = get_active_rect_of_canvas(fg_fabric_canvas)
         rect_1.scale_factor = obj.canvas1.scale_factor
-        rect_1.gc_mask_value = cv.GC_PR_FGD
-        // var rect_2 = get_active_rect_of_canvas(fg_fabric_canvas_2)
-        // rect_2.scale_factor = obj.canvas2.scale_factor
-        // rect_2.gc_mask_value = cv.GC_BGD
-        console.log(rect_1)
-        // console.log(rect_2)
-
-        // var rect_list = [rect_1, rect_2]
-        var rect_list = [rect_1]
 
         let row_id = id        
-        do_grabcut_backend(imageURL.replace("../static/images/", ""),  rect_list , col2, appending_container, obj)
+        do_grabcut_backend(imageURL.replace("../static/images/", ""),  rect_1 , col2, appending_container, obj)
 
     })
 
@@ -294,38 +291,33 @@ function makeGrabCutRow(appending_container,imageURL, project_name) {
         img_width: "",
         original_image: "",
     }
+    
 
-    // makeBackgroundDrawingFabricCanvas(obj.canvas2, col3)
 
     let bg_drawing_canvas = makeBackgroundDrawingFabricCanvas(obj.refinement_canvas, col3)
 
-        let add_back_detail_button = $("<button class='btn btn-primary'>Add Back Detail</button>")
+        let add_back_detail_button = $("<button class='btn btn-primary'>Run grabcut refinmenet</button>")
         $(col3).append(add_back_detail_button)
         $(add_back_detail_button).click(function(){
+            //error checking for when there's no rectangle drawn on the first canvas
             if(!obj.canvas1.ready){
 
-                alert("Please draw rectangle first")
+                alert("Please draw a rectangle first")
                 return
             } 
-            console.log("add_back_detail_button")
             var rect_1 = get_active_rect_of_canvas(fg_fabric_canvas)
             rect_1.scale_factor = obj.canvas1.scale_factor
             rect_1.gc_mask_value = cv.GC_PR_FGD
-            console.log('RECT !!!')
-            console.log(rect_1)
+    
             refine_grabcut(imageURL.replace("../static/images/", ""),bg_drawing_canvas, obj, rect_1, col4, appending_container)
-            // grabCutRefinement_Add(canvas_3_add, obj, canvas4_id, obj.image.original_image)
         })
 
-        let clear_canvas_button = $("<button class='btn btn-primary'>Clear Canvas</button>")
-        $(col3).append(clear_canvas_button)
+        let clear_canvas_button = $("<button class='btn btn-primary'>Clear Drawing</button>")
+        //$(col3).append("<span>&nbsp&nbsp&nbsp&nbsp</span>")
+        $(col3).append("<span>&nbsp&nbsp&nbsp&nbsp</span>").append(clear_canvas_button)
         $(clear_canvas_button).click(function(){ 
-            console.log("clearing canvas")
            clear_canvas(bg_drawing_canvas)
         })
-
-
-
 
     return obj
 }
@@ -338,8 +330,6 @@ function refine_grabcut(img_file, drawing_canvas, obj, rect_coords, where, div_i
     $(where).append(loading_img)
     //get objects from drawing canvas, send paths to backend
     let lines = drawing_canvas.getObjects()
-    console.log('LINES: !!!!!!!!!!!!!!!!!!!!!!11')
-    console.log(lines)
     var drawing = {
         'lines' : lines,
         'scale_factor' : obj.refinement_canvas.scale_factor,
@@ -359,10 +349,9 @@ function refine_grabcut(img_file, drawing_canvas, obj, rect_coords, where, div_i
         contentType: 'application/json; charset=UTF-8',
         dataType: 'json',
         success: function (result) {
-            console.log(result)
             file_name = result['saved_file']
             $("#loading_2_" + div_id).remove()
-            append_grabcut_result(file_name, where, div_id, /*rect_coords //for when we want to crop the image after being selected*/)
+            append_grabcut_result(file_name, where, div_id)
             obj.refinement_output.imageURL = file_name
         },
         error: function (request, status, error) {
@@ -372,14 +361,10 @@ function refine_grabcut(img_file, drawing_canvas, obj, rect_coords, where, div_i
           console.log(error)
         }
     });
-    //append result to where
 }
 
 function get_active_rect_of_canvas(fabric_canvas) {
     let active = fabric_canvas.getActiveObject()
-    console.log("active")
-    console.log(active)
-
     if(active) {
         let left = active.left
         let top = active.top
@@ -407,8 +392,6 @@ function get_active_rect_of_canvas(fabric_canvas) {
 // where is the id of the div to append the returned image to.
 //div_id
 function do_grabcut_backend(img_file, rect_coords,  where, div_id, obj){ //} project_name, row_id) {
-    console.log("div_id", div_id)
-    console.log("row_id", obj)
     $(where).empty()
     var loading_img = $("<div id='loading_" +div_id +"'>")
 		$(loading_img).append("<img src='../static/ajax-loader.gif'>")
@@ -430,9 +413,7 @@ function do_grabcut_backend(img_file, rect_coords,  where, div_id, obj){ //} pro
         success: function (result) {
             console.log(result)
             file_name = result['saved_file'] 
-            //object object.
             obj.canvas2.imageURL = file_name
-
             append_grabcut_result(file_name, where, div_id)
         },
         error: function (request, status, error) {

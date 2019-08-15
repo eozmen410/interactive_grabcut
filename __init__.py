@@ -22,17 +22,8 @@ def do_grabcut():
   project_name = data['project_name']
   row_id = data['row_id']
   rect_coords = data['rect_coords']
-  #print(img_file)
-  #print(rect_coords)
-  rect_coords_send = []
-  #error checking for less than 2 rects
-  for rect in rect_coords:
-    if 'left'  in rect:
-      rect_coords_send.append(cal_rect_coords(rect))
-  #print(rect_coords_send)
-  new_file = grabcut_rect(abs_path + 'static/images/'+img_file, rect_coords_send, project_name, row_id)
-  #new_file = 
-  print(new_file)
+  rect_coords_scaled = cal_rect_coords(rect_coords)
+  new_file = grabcut_rect(abs_path + 'static/images/'+img_file, rect_coords_scaled, project_name, row_id)
   return jsonify(saved_file = new_file)
 
 @app.route('/refine_grabcut', methods=['POST'])
