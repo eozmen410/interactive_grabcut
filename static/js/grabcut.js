@@ -307,7 +307,6 @@ function makeGrabCutRow(appending_container,imageURL, project_name) {
             } 
             var rect_1 = get_active_rect_of_canvas(fg_fabric_canvas)
             rect_1.scale_factor = obj.canvas1.scale_factor
-            rect_1.gc_mask_value = cv.GC_PR_FGD
     
             refine_grabcut(imageURL.replace("../static/images/", ""),bg_drawing_canvas, obj, rect_1, col4, appending_container)
         })
