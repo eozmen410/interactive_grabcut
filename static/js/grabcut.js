@@ -217,7 +217,7 @@ function makeGrabCutRow(appending_container,imageURL, project_name) {
     let col4 =$("<div class='col-md-3'>")
 
     $(new_row).append(col1).append(col2).append(col3).append(col4)     
-    $("#"+appending_container).append("Row id: "  +id + " Grabcut outputs for this row can be found in the directory demo_grabcut/static/images/~project_name~/" + id )
+    $("#"+appending_container).append("Row id: "  +id + " Grabcut outputs for this row can be found in the directory interactive_grabcut/static/images/~project_name~/" + id )
     $("#"+appending_container).append(new_row)
 
 
