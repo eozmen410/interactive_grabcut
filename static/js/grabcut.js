@@ -296,7 +296,7 @@ function makeGrabCutRow(appending_container,imageURL, project_name) {
 
     let bg_drawing_canvas = makeBackgroundDrawingFabricCanvas(obj.refinement_canvas, col3)
 
-        let add_back_detail_button = $("<button class='btn btn-primary'>Run grabcut refinmenet</button>")
+        let add_back_detail_button = $("<button class='btn btn-primary'>Run grabcut refinement</button>")
         $(col3).append(add_back_detail_button)
         $(add_back_detail_button).click(function(){
             //error checking for when there's no rectangle drawn on the first canvas
