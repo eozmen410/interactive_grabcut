@@ -15,7 +15,9 @@
 * The path to the image should be `../static/images/<project_name>/_original/<image_file_name>`
 
 ## Dependencies
-* To run the app you will need opencv-python and numpy, use the following to install them:
+* To run the app you will need Flask, opencv-python and numpy, use the following to install them:
+
+`pip install flask` 
 
 `pip install opencv-python` 
 
