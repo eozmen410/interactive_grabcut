@@ -60,7 +60,7 @@ def new_file_name(project_name, row_id):
     return  new_name+ str(i) + '.png'
 
 
-def grabcut_drawing(image_path, rect_coords, drawing,project_name, row_id):
+def grabcut_drawing(image_path, rect_coords, fg_drawing, bg_drawing,project_name, row_id):
     print('in refine grab cut!')
     img = cv2.imread(image_path, cv2.IMREAD_UNCHANGED)
     dimy = np.shape(img)[0]
@@ -81,20 +81,23 @@ def grabcut_drawing(image_path, rect_coords, drawing,project_name, row_id):
     # make the drawing on the mask, 
     # for each line in the drawing,
     #  for each point in the line, make a circle with the scaled thickness on the mask    
-    lines = drawing['lines']
-    thickness = drawing['thickness']
-    for line in lines:
-        path = line['path']
-        for path_seg in path:
-            path_seg_type = path_seg[0]
-            if (path_seg_type == 'Q'):
-                # print('CIRCLE IN MASK')
+    # lines = drawing['lines']
+    # thickness = drawing['thickness']
+    # for line in lines:
+    #     path = line['path']
+    #     for path_seg in path:
+    #         path_seg_type = path_seg[0]
+    #         if (path_seg_type == 'Q'):
+    #             # print('CIRCLE IN MASK')
                 
-                x1 = int(path_seg[1])
-                y1 = int(path_seg[2])
-                if (x1 > dimx or x1 < 0) or (y1> dimy or y1 < 0) :
-                    continue
-                cv2.circle(mask, (x1,y1), int(thickness), 0, -1)
+    #             x1 = int(path_seg[1])
+    #             y1 = int(path_seg[2])
+    #             if (x1 > dimx or x1 < 0) or (y1> dimy or y1 < 0) :
+    #                 continue
+    #             cv2.circle(mask, (x1,y1), int(thickness), 0, -1)
+
+    draw_lines_on_mask(mask, fg_drawing, int(cv2.GC_FGD), dimx,dimy)
+    draw_lines_on_mask(mask, bg_drawing, int(cv2.GC_BGD),dimx,dimy)
 
 
     mask, bgdModel, fgdModel = cv2.grabCut(img,mask,rect,bgdModel,fgdModel,5,cv2.GC_INIT_WITH_MASK)
@@ -113,3 +116,20 @@ def grabcut_drawing(image_path, rect_coords, drawing,project_name, row_id):
     
     #send the new file name back
     return img_file_name
+
+def draw_lines_on_mask(mask, drawing, val, dimx,dimy):
+    lines = drawing['lines']
+    thickness = drawing['thickness']
+    for line in lines:
+        path = line['path']
+        for path_seg in path:
+            path_seg_type = path_seg[0]
+            if (path_seg_type == 'Q'):
+                # print('CIRCLE IN MASK')
+                
+                x1 = int(path_seg[1])
+                y1 = int(path_seg[2])
+                if (x1 > dimx or x1 < 0) or (y1> dimy or y1 < 0) :
+                    continue
+                cv2.circle(mask, (x1,y1), int(thickness), val, -1)
+

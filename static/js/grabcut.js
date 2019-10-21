@@ -120,7 +120,32 @@ function makeProbableForegroundFabricCanvas(myCanvasObj, appendToCol){
 
 }
 
-function makeBackgroundDrawingFabricCanvas(myCanvasObj, appendToCol) {
+// function makeBackgroundDrawingFabricCanvas(myCanvasObj, appendToCol) {
+//     console.log("1")
+//     let canvas_id = myCanvasObj.id
+//     let canvas_html = $("<canvas>")        
+//     $(canvas_html).attr("id", canvas_id)
+//     $(canvas_html).attr("height", canvas_height)
+//     $(canvas_html).attr("width", canvas_width)
+//     $(appendToCol).append(canvas_html) 
+    
+//     var canvas = new fabric.Canvas(canvas_id);
+
+
+//     canvas.isDrawingMode = true
+//     canvas.freeDrawingBrush.color = "green";
+//     canvas.freeDrawingBrush.width = 1;
+
+//     let add_back_detail_button = $("<button class='btn btn-primary'>Add Back Detail</button>")
+//     $(appendToCol).append(add_back_detail_button)
+//     $(add_back_detail_button).click(function(){ 
+//         grabCutRefinement_Add(canvas_3_add, obj, canvas4_id, obj.image.original_image)
+//     })
+
+// }
+
+function makeDrawingFabricCanvas(myCanvasObj, appendToCol,color) {
+    console.log("2")
     let canvas_id = myCanvasObj.id
     let canvas_html = $("<canvas>")        
     $(canvas_html).attr("id", canvas_id)
@@ -132,30 +157,7 @@ function makeBackgroundDrawingFabricCanvas(myCanvasObj, appendToCol) {
 
 
     canvas.isDrawingMode = true
-    canvas.freeDrawingBrush.color = "green";
-    canvas.freeDrawingBrush.width = 1;
-
-    let add_back_detail_button = $("<button class='btn btn-primary'>Add Back Detail</button>")
-    $(appendToCol).append(add_back_detail_button)
-    $(add_back_detail_button).click(function(){ 
-        grabCutRefinement_Add(canvas_3_add, obj, canvas4_id, obj.image.original_image)
-    })
-
-}
-
-function makeBackgroundDrawingFabricCanvas(myCanvasObj, appendToCol) {
-    let canvas_id = myCanvasObj.id
-    let canvas_html = $("<canvas>")        
-    $(canvas_html).attr("id", canvas_id)
-    $(canvas_html).attr("height", canvas_height)
-    $(canvas_html).attr("width", canvas_width)
-    $(appendToCol).append(canvas_html) 
-    
-    var canvas = new fabric.Canvas(canvas_id);
-
-
-    canvas.isDrawingMode = true
-    canvas.freeDrawingBrush.color = "green";
+    canvas.freeDrawingBrush.color = color;
     canvas.freeDrawingBrush.width = 1;
 
 
@@ -229,7 +231,7 @@ function makeGrabCutRow(appending_container,imageURL, project_name) {
     let title4 =$("<div class='col-md-3'>")
     $(title1).append("<div class='title'>Draw Rectangle for grabcut (init_w_rect) <br> Make sure to get all the foreground in the rectangle</div>")
     $(title2).append("<div class='title'>Result of grabcut with rectangle:</div>")
-    $(title3).append("<div class='title'>Remove background from image by drawing on the paces that are background</div>")
+    $(title3).append("<div class='title'>Remove background from image by drawing on the places that are background on the top canvas. <br> Add foreground by drawing on foreground on the bottom canvas.</div>")
     $(title4).append("<div class='title'>Result of refinement: </div>")
     $(title_row).append(title1).append(title2).append(title3).append(title4)
     $(title_container).append(title_row)
@@ -291,10 +293,23 @@ function makeGrabCutRow(appending_container,imageURL, project_name) {
         img_width: "",
         original_image: "",
     }
+
+    let canvas3_id = getGrabcutCanvasId(id, "3")
+    obj.fg_canvas = {
+        type: "fabric_canvas",            
+        id: canvas3_id,
+        imageURL: imageURL,
+        scale_factor: 1, //default of no scaling factor
+        img_height: "",
+        img_width: "",
+        original_image: "", 
+    }
     
 
 
-    let bg_drawing_canvas = makeBackgroundDrawingFabricCanvas(obj.refinement_canvas, col3)
+    let bg_drawing_canvas = makeDrawingFabricCanvas(obj.refinement_canvas, col3, "black")
+
+    let fg_drawing_canvas = makeDrawingFabricCanvas(obj.fg_canvas, col3,"blue")
 
         let add_back_detail_button = $("<button class='btn btn-primary'>Run grabcut refinement</button>")
         $(col3).append(add_back_detail_button)
@@ -308,7 +323,7 @@ function makeGrabCutRow(appending_container,imageURL, project_name) {
             var rect_1 = get_active_rect_of_canvas(fg_fabric_canvas)
             rect_1.scale_factor = obj.canvas1.scale_factor
     
-            refine_grabcut(imageURL.replace("../static/images/", ""),bg_drawing_canvas, obj, rect_1, col4, appending_container)
+            refine_grabcut(imageURL.replace("../static/images/", ""),bg_drawing_canvas, fg_drawing_canvas, obj, rect_1, col4, appending_container)
         })
 
         let clear_canvas_button = $("<button class='btn btn-primary'>Clear Drawing</button>")
@@ -320,21 +335,28 @@ function makeGrabCutRow(appending_container,imageURL, project_name) {
     return obj
 }
 
-function refine_grabcut(img_file, drawing_canvas, obj, rect_coords, where, div_id) {
+function refine_grabcut(img_file, bg_drawing_canvas, fg_drawing_canvas, obj, rect_coords, where, div_id) {
     $(where).empty()
     var loading_img = $("<div id='loading_2_" +div_id +"'>")
     $(loading_img).append("<img src='../static/ajax-loader.gif'>")
     $(loading_img).addClass('loading_gif')
     $(where).append(loading_img)
     //get objects from drawing canvas, send paths to backend
-    let lines = drawing_canvas.getObjects()
-    var drawing = {
+    let lines = bg_drawing_canvas.getObjects()
+    var bg_drawing = {
         'lines' : lines,
         'scale_factor' : obj.refinement_canvas.scale_factor,
         'thickness' : 1
     }
+    let fg_lines = fg_drawing_canvas.getObjects();
+    var fg_drawing = {
+        'lines' : lines,
+        'scale_factor' : obj.fg_canvas.scale_factor,
+        'thickness' : 1
+    }
     var send = {
-        'drawing' : drawing,
+        'bg_drawing' : bg_drawing,
+        'fg_drawing' : fg_drawing,
         'img_file' : img_file,
         'rect_coords' : rect_coords,
         'project_name': obj.project_name,
