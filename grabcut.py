@@ -96,8 +96,8 @@ def grabcut_drawing(image_path, rect_coords, fg_drawing, bg_drawing,project_name
     #                 continue
     #             cv2.circle(mask, (x1,y1), int(thickness), 0, -1)
 
-    draw_lines_on_mask(mask, fg_drawing, int(cv2.GC_FGD), dimx,dimy)
-    draw_lines_on_mask(mask, bg_drawing, int(cv2.GC_BGD),dimx,dimy)
+    mask = draw_lines_on_mask(mask, fg_drawing, int(cv2.GC_FGD), dimx,dimy)
+    mask = draw_lines_on_mask(mask, bg_drawing, int(cv2.GC_BGD),dimx,dimy)
 
 
     mask, bgdModel, fgdModel = cv2.grabCut(img,mask,rect,bgdModel,fgdModel,5,cv2.GC_INIT_WITH_MASK)
@@ -132,4 +132,5 @@ def draw_lines_on_mask(mask, drawing, val, dimx,dimy):
                 if (x1 > dimx or x1 < 0) or (y1> dimy or y1 < 0) :
                     continue
                 cv2.circle(mask, (x1,y1), int(thickness), val, -1)
+    return mask
 

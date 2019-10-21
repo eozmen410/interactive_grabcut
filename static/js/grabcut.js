@@ -326,10 +326,11 @@ function makeGrabCutRow(appending_container,imageURL, project_name) {
             refine_grabcut(imageURL.replace("../static/images/", ""),bg_drawing_canvas, fg_drawing_canvas, obj, rect_1, col4, appending_container)
         })
 
-        let clear_canvas_button = $("<button class='btn btn-primary'>Clear Drawing</button>")
+        let clear_canvas_button = $("<button class='btn btn-primary'>Clear Drawings</button>")
         $(col3).append("<span>&nbsp&nbsp&nbsp&nbsp</span>").append(clear_canvas_button)
         $(clear_canvas_button).click(function(){ 
            clear_canvas(bg_drawing_canvas)
+           clear_canvas(fg_drawing_canvas)
         })
 
     return obj
