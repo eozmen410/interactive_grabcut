@@ -1,5 +1,11 @@
 # Interactive Grabcut with Flask
 
+## Description
+
+This is an interactive implementation of GrabCut that runs in Flask. The Flask app allows users to first draw a rectangle to indicate the foreground and then refine the GrabCut output by drawing lines to indicate background to be removed. 
+
+[Read more about the app and its implementation!](https://medium.com/@eo2419/interactive-grabcut-implementation-in-flask-python-269791b51e42)
+
 ## Running the App
 
 * Use `python __init__.py` to run the flask server. 
@@ -15,7 +21,9 @@
 * The path to the image should be `../static/images/<project_name>/_original/<image_file_name>`
 
 ## Dependencies
-* To run the app you will need opencv-python and numpy, use the following to install them:
+* To run the app you will need Flask, opencv-python and numpy, use the following to install them:
+
+`pip install flask` 
 
 `pip install opencv-python` 
 
