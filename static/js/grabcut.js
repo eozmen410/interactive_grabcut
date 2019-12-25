@@ -351,7 +351,7 @@ function refine_grabcut(img_file, bg_drawing_canvas, fg_drawing_canvas, obj, rec
     }
     let fg_lines = fg_drawing_canvas.getObjects();
     var fg_drawing = {
-        'lines' : lines,
+        'lines' : fg_lines,
         'scale_factor' : obj.fg_canvas.scale_factor,
         'thickness' : 1
     }
