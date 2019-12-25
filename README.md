@@ -2,7 +2,7 @@
 
 ## Description
 
-This is an interactive implementation of GrabCut that runs in Flask. The Flask app allows users to first draw a rectangle to indicate the foreground and then refine the GrabCut output by drawing lines to indicate background to be removed. 
+This is an interactive implementation of GrabCut that runs in Flask. The Flask app allows users to first draw a rectangle to indicate the foreground and then refine the GrabCut output by drawing lines to indicate background to be removed on the first canvas and indicate foreground to be included on the second canvas. 
 
 [Read more about the app and its implementation!](https://medium.com/@eo2419/interactive-grabcut-implementation-in-flask-python-269791b51e42)
 
